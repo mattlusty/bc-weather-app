@@ -23,7 +23,7 @@ Open Weather Map "5 day - each 3 hours" API has limitations that affect this cha
 
 # APIs
 
-## 5 day (per 3 hours) (FREE)
+## 5 day (3 hours intervals) (FREE)
 
 ### Description
 
@@ -35,8 +35,43 @@ https://openweathermap.org/forecast5
 
 ### API Calls
 
-API Call (by Geo-Coords):
+By Geo-Coords:
 https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API_key}
+
+By City Name:
+https://api.openweathermap.org/data/2.5/forecast?q={city_name}&appid={API_key}
+
+## Current Weather (FREE)
+
+### Description
+
+For accessing the current weather (ie today / now)
+
+### Webpage:
+
+https://openweathermap.org/current
+
+### API Calls
+
+By Geo-Coords:
+https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_key}
+
+By City Name:
+https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_key}
+
+## Daily Forecast 16 Days (PREMIUM)
+
+### Description
+
+Provides 16 day weather forecast with _daily average_ parameters
+
+### Webpage:
+
+https://openweathermap.org/forecast16
+
+### API Calls
+
+https://api.openweathermap.org/data/2.5/forecast/daily?lat={lat}&lon={lon}&cnt={cnt}&appid={API_key}
 
 ## One Call 3 (PREMIUM)
 
@@ -56,20 +91,15 @@ API endpoints for...
 
 https://openweathermap.org/api/one-call-3
 
-## Current Weather (FREE)
+## Request Specific Units
 
-### Description
+Temperature is available in Fahrenheit, Celsius and Kelvin units.
 
-For accessing the current weather (ie today / now)
+- For temperature in Fahrenheit use units=imperial
+- For temperature in Celsius use units=metric
+- Temperature in Kelvin is used by default, no need to use units parameter in API call
+- List of all API parameters with units https://openweathermap.org/weather-data
 
-### Webpage:
+## Weather Icons
 
-https://openweathermap.org/current
-
-### API Calls
-
-API Call (by Geo-Coords):
-https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_key}
-
-API Call (by City Name):
-https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_key}
+https://openweathermap.org/weather-conditions

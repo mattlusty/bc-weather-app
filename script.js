@@ -27,15 +27,13 @@ let searchButton = $("#search-button").on("click", function (event) {
     .then(function (data) {
       let items = data.list;
       console.log(items);
+      let days = [];
 
-      let days = [[]];
-      console.log("days: ", days);
       let loopDay = dayjs().format("dddd");
       let loopDayIndex = 0;
 
       console.log("First loopDay: ", loopDay);
 
-      // 5 items = next 15 hours
       for (let i = 0; i < items.length; i++) {
         console.log("i: ", i);
 
@@ -45,30 +43,51 @@ let searchButton = $("#search-button").on("click", function (event) {
         let dateMilliseconds = dateSeconds * 1000;
         let date = dayjs(dateMilliseconds);
         let weekDay = date.format("dddd");
-        // let hour = date.format("HH:00"); // DELETE
 
         let tempKelvin = item.main.temp;
-        let temp = (tempKelvin - 273.15).toFixed(2);
+        let tempCelcius = tempKelvin - 273.1;
+        // Below does similar as toFixed() but with an integer return (instead of string return)
+        let temp = toFixedNumber(tempCelcius, 2);
+        console.log("temp: ", temp);
 
-        let day = { day: weekDay, temp: temp };
+        let wind = item.wind.speed;
+        let humidity = item.main.humidity;
 
-        console.log("weekDay: ", weekDay);
-        console.log("loopDay: ", loopDay);
-        console.log("weekDay == loopDay: ", weekDay == loopDay);
+        console.log("wind: ", wind);
 
+        // console.log("weekDay: ", weekDay);
+        // console.log("loopDay: ", loopDay);
+        // console.log("loopDayIndex: ", loopDayIndex);
+        // console.log("weekDay == loopDay: ", weekDay == loopDay);
+
+        // Check if new weekDay
         if (!(weekDay == loopDay)) {
-          console.log("new day!");
-          loopDayIndex++;
+          // If this happens during first iteration, no need to increment loopDayIndex (days[] array will be empty)
+          if (i > 0) loopDayIndex++;
+          // Advance weekDay regardless
           loopDay = weekDay;
-          days[loopDayIndex] = [];
+          // Create new object array for new weekDay
+          days[loopDayIndex] = { day: weekDay, temps: [], winds: [], humidities: [] };
         }
 
-        days[loopDayIndex].push(day);
+        let day = days[loopDayIndex];
+        day.temps.push(temp);
+        day.winds.push(wind);
+        day.humidities.push(humidity);
 
-        renderDay(day);
+        // renderDay(day); // NOT NEEDED HERE (Except for testing)
       }
+      console.log("days: ", days);
+      let dailyAverages = getDailyAverages(days);
+      renderDays(dailyAverages);
     });
 });
+
+function renderDays(days) {
+  days.forEach(function (day) {
+    renderDay(day);
+  });
+}
 
 function renderDay({ day, temp, wind, humidity }) {
   // Construct elements
@@ -76,11 +95,44 @@ function renderDay({ day, temp, wind, humidity }) {
   let weekDayElement = $("<div>").text(day);
   let tempElement = $("<div>").text(temp);
   let windElement = $("<div>").text(day);
-  let himidityElement = $("<div>").text(humidity);
+  let humidityElement = $("<div>").text(humidity);
   // Apply classes
   forecastElement.addClass("col m-2 border border-dark");
   // Construct
-  forecastElement.append(weekDayElement, tempElement, windElement, himidityElement);
+  forecastElement.append(weekDayElement, tempElement, windElement, humidityElement);
   // Append to DOM
   forecastSection.append(forecastElement);
+}
+
+function getDailyAverages(days) {
+  let dayAverages = days.map(function (day) {
+    let dataLength = day.temps.length;
+
+    let tempSum = 0;
+    day.temps.forEach(function (temp) {
+      tempSum += temp;
+    });
+
+    let windSum = 0;
+    day.winds.forEach(function (wind) {
+      windSum += wind;
+    });
+
+    let humiditySum = 0;
+    day.humidities.forEach(function (humidity) {
+      humiditySum += humidity;
+    });
+
+    let tempAverage = toFixedNumber(tempSum / dataLength, 2);
+    let windAverage = toFixedNumber(windSum / dataLength, 2);
+    let humidityAverage = toFixedNumber(windSum / dataLength, 2);
+
+    return { day: day, temp: tempAverage, wind: windAverage, humidity: humidityAverage };
+  });
+  // console.log("dayAverages: ", dayAverages);
+  return dayAverages;
+}
+
+function toFixedNumber(number, exponent) {
+  return Math.round(number * Math.pow(10, exponent)) / 100;
 }
