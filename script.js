@@ -2,67 +2,56 @@ let searchInput = $("#search-input");
 let baseUrl = "https://api.openweathermap.org/data/2.5/forecast?";
 let appId = "&appid=9397f4c4feeadfc01afd4e19fa302fb4";
 
+// Search History (cities)
 let history = [];
 
 // Elements
 let forecastSection = $("#forecast");
 
+// Search Event Handler
 let searchButton = $("#search-button").on("click", function (event) {
   event.preventDefault();
 
+  // Get user input
   let city = searchInput.val();
+
+  // Constuct queryUrl
   let cityQuery = "&q=" + city;
-
-  // let queryUrl = baseUrl + appId + cityQuery;
-
   let queryUrl = baseUrl + appId + cityQuery;
-  history.push(city);
 
-  console.log(queryUrl);
-
+  // Fetch Request
   fetch(queryUrl)
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
       let items = data.list;
-      console.log(items);
-      let days = [];
 
+      // Initiate variables for looping over weather data
+      let days = [];
       let loopDay = dayjs().format("dddd");
       let loopDayIndex = 0;
 
-      console.log("First loopDay: ", loopDay);
-
       for (let i = 0; i < items.length; i++) {
-        console.log("i: ", i);
-
         let item = items[i];
 
+        // Get Day Value from the Data Point
         let dateSeconds = item.dt;
         let dateMilliseconds = dateSeconds * 1000;
         let date = dayjs(dateMilliseconds);
         let weekDay = date.format("dddd");
 
+        // Get weather data from the Data Point
         let tempKelvin = item.main.temp;
         let tempCelcius = tempKelvin - 273.1;
-        // Below does similar as toFixed() but with an integer return (instead of string return)
         let temp = toFixedNumber(tempCelcius, 2);
-        console.log("temp: ", temp);
-
+        //
         let wind = item.wind.speed;
         let humidity = item.main.humidity;
 
-        console.log("wind: ", wind);
-
-        // console.log("weekDay: ", weekDay);
-        // console.log("loopDay: ", loopDay);
-        // console.log("loopDayIndex: ", loopDayIndex);
-        // console.log("weekDay == loopDay: ", weekDay == loopDay);
-
-        // Check if new weekDay
+        // Check if day is a newday from last
         if (!(weekDay == loopDay)) {
-          // If this happens during first iteration, no need to increment loopDayIndex (days[] array will be empty)
+          // Only increment loopDayIndex if not the very first data point! (Otherwise first array index will be empty)
           if (i > 0) loopDayIndex++;
           // Advance weekDay regardless
           loopDay = weekDay;
@@ -70,39 +59,25 @@ let searchButton = $("#search-button").on("click", function (event) {
           days[loopDayIndex] = { day: weekDay, temps: [], winds: [], humidities: [] };
         }
 
+        // Add this data point's weather data to current loopDay
         let day = days[loopDayIndex];
         day.temps.push(temp);
         day.winds.push(wind);
         day.humidities.push(humidity);
-
-        // renderDay(day); // NOT NEEDED HERE (Except for testing)
       }
-      console.log("days: ", days);
+
+      // Now get averages from each days data points
       let dailyAverages = getDailyAverages(days);
+      console.log("dailyAverages: ", dailyAverages);
+
+      // Render in DOM
       renderDays(dailyAverages);
+
+      updateHistory(city);
     });
 });
 
-function renderDays(days) {
-  days.forEach(function (day) {
-    renderDay(day);
-  });
-}
-
-function renderDay({ day, temp, wind, humidity }) {
-  // Construct elements
-  let forecastElement = $("<div>");
-  let weekDayElement = $("<div>").text(day);
-  let tempElement = $("<div>").text(temp);
-  let windElement = $("<div>").text(day);
-  let humidityElement = $("<div>").text(humidity);
-  // Apply classes
-  forecastElement.addClass("col m-2 border border-dark");
-  // Construct
-  forecastElement.append(weekDayElement, tempElement, windElement, humidityElement);
-  // Append to DOM
-  forecastSection.append(forecastElement);
-}
+// Functions
 
 function getDailyAverages(days) {
   let dayAverages = days.map(function (day) {
@@ -125,14 +100,46 @@ function getDailyAverages(days) {
 
     let tempAverage = toFixedNumber(tempSum / dataLength, 2);
     let windAverage = toFixedNumber(windSum / dataLength, 2);
-    let humidityAverage = toFixedNumber(windSum / dataLength, 2);
+    let humidityAverage = toFixedNumber(humiditySum / dataLength, 2);
 
-    return { day: day, temp: tempAverage, wind: windAverage, humidity: humidityAverage };
+    return { day: day.day, temp: tempAverage, wind: windAverage, humidity: humidityAverage };
   });
-  // console.log("dayAverages: ", dayAverages);
   return dayAverages;
 }
 
+function renderDays(days) {
+  days.forEach(function (day) {
+    renderDay(day);
+  });
+}
+
+function renderDay(day) {
+  ({ day, temp, wind, humidity } = day);
+  console.log(day);
+  // Construct elements
+  let forecastElement = $("<div>");
+  let weekDayElement = $("<div>").text(day);
+  let tempElement = $("<div>").text(temp);
+  let windElement = $("<div>").text(wind);
+  let humidityElement = $("<div>").text(humidity);
+  // Apply classes
+  forecastElement.addClass("col m-2 border border-dark");
+  // Construct
+  forecastElement.append(weekDayElement, tempElement, windElement, humidityElement);
+  // Append to DOM
+  forecastSection.append(forecastElement);
+}
+
+function updateHistory(city) {
+  // Add to history array
+  history.push(city);
+  // Add to localstorage
+  localStorage.set("history", JSON.stringify(history));
+}
+
+// UTILITY FUNCTIONS
+
+// Similar as Math.toFixed() but with an integer return (instead of string return)
 function toFixedNumber(number, exponent) {
   return Math.round(number * Math.pow(10, exponent)) / 100;
 }
