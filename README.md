@@ -103,3 +103,5 @@ Temperature is available in Fahrenheit, Celsius and Kelvin units.
 ## Weather Icons
 
 https://openweathermap.org/weather-conditions
+
+https://www.svgrepo.com/collection/weather-line-icons

@@ -15,7 +15,7 @@ let searchButton = $("#search-button").on("click", function (event) {
   // Get user input
   let city = searchInput.val();
 
-  // Constuct queryUrl
+  // Construct queryUrl
   let cityQuery = "&q=" + city;
   let queryUrl = baseUrl + appId + cityQuery;
 
@@ -28,18 +28,17 @@ let searchButton = $("#search-button").on("click", function (event) {
       let items = data.list;
 
       // Initiate variables for looping over weather data
-      let days = [];
-      let loopDay = dayjs().format("dddd");
       let loopDayIndex = 0;
+      let loopDay = getWeekDay(items[0].dt);
+      let days = [{ day: loopDay, temps: [], winds: [], humidities: [] }];
 
       for (let i = 0; i < items.length; i++) {
         let item = items[i];
 
+        console.log(i);
+
         // Get Day Value from the Data Point
-        let dateSeconds = item.dt;
-        let dateMilliseconds = dateSeconds * 1000;
-        let date = dayjs(dateMilliseconds);
-        let weekDay = date.format("dddd");
+        let weekDay = getWeekDay(item.dt);
 
         // Get weather data from the Data Point
         let tempKelvin = item.main.temp;
@@ -49,11 +48,15 @@ let searchButton = $("#search-button").on("click", function (event) {
         let wind = item.wind.speed;
         let humidity = item.main.humidity;
 
+        console.log("weekDay: ", weekDay);
+        console.log("loopDay: ", loopDay);
+        console.log("weekDay == loopDay: ", weekDay == loopDay);
+
         // Check if day is a newday from last
         if (!(weekDay == loopDay)) {
-          // Only increment loopDayIndex if not the very first data point! (Otherwise first array index will be empty)
-          if (i > 0) loopDayIndex++;
-          // Advance weekDay regardless
+          console.log("new day!");
+          // Advance weekDay
+          loopDayIndex++;
           loopDay = weekDay;
           // Create new object array for new weekDay
           days[loopDayIndex] = { day: weekDay, temps: [], winds: [], humidities: [] };
@@ -119,9 +122,9 @@ function renderDay(day) {
   // Construct elements
   let forecastElement = $("<div>");
   let weekDayElement = $("<div>").text(day);
-  let tempElement = $("<div>").text(temp);
-  let windElement = $("<div>").text(wind);
-  let humidityElement = $("<div>").text(humidity);
+  let tempElement = $("<div>").text("Temp: " + temp);
+  let windElement = $("<div>").text("Wind: " + wind);
+  let humidityElement = $("<div>").text("Humidity: " + humidity);
   // Apply classes
   forecastElement.addClass("col m-2 border border-dark");
   // Construct
@@ -138,6 +141,12 @@ function updateHistory(city) {
 }
 
 // UTILITY FUNCTIONS
+
+function getWeekDay(seconds) {
+  let dateMilliseconds = seconds * 1000;
+  let date = dayjs(dateMilliseconds);
+  return date.format("dddd");
+}
 
 // Similar as Math.toFixed() but with an integer return (instead of string return)
 function toFixedNumber(number, exponent) {
