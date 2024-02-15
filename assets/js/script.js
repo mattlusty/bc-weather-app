@@ -7,12 +7,16 @@ let appId = "&appid=9397f4c4feeadfc01afd4e19fa302fb4";
 let history = [];
 
 // Elements
+let cityName = $("#city");
 let forecastSection = $("#forecast");
 
 function search(city) {
   // Construct queryUrl
   let cityQuery = "&q=" + city;
   let queryUrl = baseUrl + appId + cityQuery;
+
+  cityName.empty();
+  cityName.text("City:" + city);
 
   // Fetch Request
   fetch(queryUrl)
