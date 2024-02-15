@@ -25,8 +25,11 @@ function search(city) {
       // Initiate variables for looping over weather data
       let loopDayIndex = 0;
       let loopDay = getWeekDay(items[0].dt);
+      let firstDate = getDate(items[0].dt);
       let firstIcon = items[0].weather[0].icon;
-      let days = [{ day: loopDay, temps: [], winds: [], humidities: [], icon: firstIcon }];
+      let days = [
+        { day: loopDay, date: firstDate, temps: [], winds: [], humidities: [], icon: firstIcon },
+      ];
 
       for (let i = 0; i < items.length; i++) {
         let item = items[i];
@@ -52,18 +55,21 @@ function search(city) {
         // Check if day is a newday from last
         if (!(weekDay == loopDay)) {
           console.log("new day!");
+          // let dayDate = getDate(item.dt);
+          // console.log(dayDate);
           // Advance weekDay
           loopDayIndex++;
           loopDay = weekDay;
           // Create new object array for new weekDay
           days[loopDayIndex] = {
             day: weekDay,
+            date: getDate(item.dt),
             temps: [],
             winds: [],
             humidities: [],
             icon: item.weather[0].icon,
           };
-          console.log();
+          console.log(days);
         }
 
         // Add this data point's weather data to current loopDay
@@ -126,6 +132,7 @@ function getDailyAverages(days) {
 
     return {
       day: day.day,
+      date: day.date,
       temp: tempAverage,
       wind: windAverage,
       humidity: humidityAverage,
@@ -145,10 +152,10 @@ function renderDays(days) {
 
 function renderDay(day) {
   console.log("day: ", day);
-  ({ day, temp, wind, humidity, icon } = day);
+  ({ day, date, temp, wind, humidity, icon } = day);
   // Construct elements
   let forecastElement = $("<div>");
-  let weekDayElement = $("<div>").text(day);
+  let weekDayElement = $("<div>").text(day + " (" + date + ")");
   let iconElement = $("<div>");
   let tempElement = $("<div>").text("Temp: " + temp);
   let windElement = $("<div>").text("Wind: " + wind);
@@ -233,6 +240,12 @@ function getWeekDay(seconds) {
   let dateMilliseconds = seconds * 1000;
   let date = dayjs(dateMilliseconds);
   return date.format("dddd");
+}
+
+function getDate(seconds) {
+  let dateMilliseconds = seconds * 1000;
+  let date = dayjs(dateMilliseconds);
+  return date.format("DD/MM/YY");
 }
 
 // Similar as Math.toFixed() but with an integer return (instead of string return)
