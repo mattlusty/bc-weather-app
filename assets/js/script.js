@@ -256,7 +256,9 @@ function toFixedNumber(number, exponent) {
 // ON Start
 console.log("on start");
 history = JSON.parse(localStorage.getItem("history"));
-
+if (!history) {
+  history = [];
+}
 console.log(history);
 
 renderHistory();
