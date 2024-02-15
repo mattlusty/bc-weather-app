@@ -252,3 +252,11 @@ function getDate(seconds) {
 function toFixedNumber(number, exponent) {
   return Math.round(number * Math.pow(10, exponent)) / 100;
 }
+
+// ON Start
+console.log("on start");
+history = JSON.parse(localStorage.getItem("history"));
+
+console.log(history);
+
+renderHistory();
