@@ -1,4 +1,5 @@
 let searchInput = $("#search-input");
+let historyContainer = $("#history");
 let baseUrl = "https://api.openweathermap.org/data/2.5/forecast?";
 let appId = "&appid=9397f4c4feeadfc01afd4e19fa302fb4";
 
@@ -30,12 +31,14 @@ let searchButton = $("#search-button").on("click", function (event) {
       // Initiate variables for looping over weather data
       let loopDayIndex = 0;
       let loopDay = getWeekDay(items[0].dt);
-      let days = [{ day: loopDay, temps: [], winds: [], humidities: [] }];
+      let firstIcon = items[0].weather[0].icon;
+      let days = [{ day: loopDay, temps: [], winds: [], humidities: [], icon: firstIcon }];
 
       for (let i = 0; i < items.length; i++) {
         let item = items[i];
 
-        console.log(i);
+        // console.log(i);
+        // console.log(item);
 
         // Get Day Value from the Data Point
         let weekDay = getWeekDay(item.dt);
@@ -48,9 +51,9 @@ let searchButton = $("#search-button").on("click", function (event) {
         let wind = item.wind.speed;
         let humidity = item.main.humidity;
 
-        console.log("weekDay: ", weekDay);
-        console.log("loopDay: ", loopDay);
-        console.log("weekDay == loopDay: ", weekDay == loopDay);
+        // console.log("weekDay: ", weekDay);
+        // console.log("loopDay: ", loopDay);
+        // console.log("weekDay == loopDay: ", weekDay == loopDay);
 
         // Check if day is a newday from last
         if (!(weekDay == loopDay)) {
@@ -59,7 +62,14 @@ let searchButton = $("#search-button").on("click", function (event) {
           loopDayIndex++;
           loopDay = weekDay;
           // Create new object array for new weekDay
-          days[loopDayIndex] = { day: weekDay, temps: [], winds: [], humidities: [] };
+          days[loopDayIndex] = {
+            day: weekDay,
+            temps: [],
+            winds: [],
+            humidities: [],
+            icon: item.weather[0].icon,
+          };
+          console.log();
         }
 
         // Add this data point's weather data to current loopDay
@@ -71,7 +81,6 @@ let searchButton = $("#search-button").on("click", function (event) {
 
       // Now get averages from each days data points
       let dailyAverages = getDailyAverages(days);
-      console.log("dailyAverages: ", dailyAverages);
 
       // Render in DOM
       renderDays(dailyAverages);
@@ -105,39 +114,107 @@ function getDailyAverages(days) {
     let windAverage = toFixedNumber(windSum / dataLength, 2);
     let humidityAverage = toFixedNumber(humiditySum / dataLength, 2);
 
-    return { day: day.day, temp: tempAverage, wind: windAverage, humidity: humidityAverage };
+    return {
+      day: day.day,
+      temp: tempAverage,
+      wind: windAverage,
+      humidity: humidityAverage,
+      icon: day.icon,
+    };
   });
   return dayAverages;
 }
 
 function renderDays(days) {
+  forecastSection.empty();
+
   days.forEach(function (day) {
     renderDay(day);
   });
 }
 
 function renderDay(day) {
-  ({ day, temp, wind, humidity } = day);
-  console.log(day);
+  console.log("day: ", day);
+  ({ day, temp, wind, humidity, icon } = day);
   // Construct elements
   let forecastElement = $("<div>");
   let weekDayElement = $("<div>").text(day);
+  let iconElement = $("<div>");
   let tempElement = $("<div>").text("Temp: " + temp);
   let windElement = $("<div>").text("Wind: " + wind);
   let humidityElement = $("<div>").text("Humidity: " + humidity);
   // Apply classes
   forecastElement.addClass("col m-2 border border-dark");
+  console.log(icon);
+  switch (icon) {
+    case "01d":
+    case "01n":
+      // clear sky
+      iconElement.addClass("icon-sun");
+      break;
+    case "02d":
+    case "02n":
+      // few clouds
+      iconElement.addClass("icon-cloud");
+      break;
+    case "03d":
+    case "03n":
+      // scattered clouds
+      iconElement.addClass("icon-cloud-sun");
+      break;
+    case "04d":
+    case "04n":
+      // broken clouds
+      iconElement.addClass("icon-cloud-sun");
+      break;
+    case "09d":
+    case "09n":
+      // shower rain
+      iconElement.addClass("icon-sun-cloud-rain");
+      break;
+    case "10d":
+    case "10n":
+      // rain
+      iconElement.addClass("icon-sun-cloud-rain");
+      break;
+    case "11d":
+    case "11n":
+      // thunderstorm
+      iconElement.addClass("icon-cloud-thunder");
+      break;
+    case "13d":
+    case "13n":
+      // snow
+      iconElement.addClass("icon-snow");
+      break;
+    case "50d":
+    case "50n":
+      // mist
+      iconElement.addClass("icon-mist");
+      break;
+  }
   // Construct
-  forecastElement.append(weekDayElement, tempElement, windElement, humidityElement);
+  forecastElement.append(weekDayElement, iconElement, tempElement, windElement, humidityElement);
   // Append to DOM
   forecastSection.append(forecastElement);
+}
+
+function renderHistory() {
+  historyContainer.empty();
+  history.forEach((i) => {
+    let item = $("<li class='list-group-item'>");
+    item.append(i);
+    historyContainer.append(item);
+  });
 }
 
 function updateHistory(city) {
   // Add to history array
   history.push(city);
   // Add to localstorage
-  localStorage.set("history", JSON.stringify(history));
+  localStorage.setItem("history", JSON.stringify(history));
+
+  renderHistory();
 }
 
 // UTILITY FUNCTIONS
