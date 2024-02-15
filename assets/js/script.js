@@ -9,13 +9,7 @@ let history = [];
 // Elements
 let forecastSection = $("#forecast");
 
-// Search Event Handler
-let searchButton = $("#search-button").on("click", function (event) {
-  event.preventDefault();
-
-  // Get user input
-  let city = searchInput.val();
-
+function search(city) {
   // Construct queryUrl
   let cityQuery = "&q=" + city;
   let queryUrl = baseUrl + appId + cityQuery;
@@ -84,9 +78,25 @@ let searchButton = $("#search-button").on("click", function (event) {
 
       // Render in DOM
       renderDays(dailyAverages);
-
-      updateHistory(city);
     });
+}
+
+// Search Event Handler
+let searchButton = $("#search-button").on("click", function (event) {
+  event.preventDefault();
+
+  // Get user input
+  let city = searchInput.val();
+
+  search(city);
+
+  updateHistory(city);
+});
+
+historyContainer.on("click", ".list-group-item", function (event) {
+  let city = $(event.target).text();
+
+  search(city);
 });
 
 // Functions
